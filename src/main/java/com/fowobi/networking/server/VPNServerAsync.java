@@ -1,9 +1,15 @@
 package com.fowobi.networking.server;
 
+import com.fowobi.networking.dto.KeepAlive;
+import com.fowobi.networking.model.KeepAliveEntity;
+import com.fowobi.networking.service.KeepAliveService;
 import com.fowobi.networking.util.EncryptionUtil;
 import com.fowobi.networking.util.PropertyReader;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -14,10 +20,15 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Base64;
+import java.util.List;
 
+@Component
 public class VPNServerAsync {
     private static final int PORT = 8888;
     private static final Logger log = LoggerFactory.getLogger(VPNServer.class);
+
+    @Autowired
+    KeepAliveService keepAliveService;
 
     public void startServer() throws Exception {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
@@ -59,7 +70,15 @@ public class VPNServerAsync {
                 while((message = in.readLine()) != null) {
                     String decryptedMessage = EncryptionUtil.decrypt(Base64.getDecoder().decode(message), secretKey);
                     log.info("Message from client: {}", decryptedMessage);
-                    byte[] encryptedResponse = EncryptionUtil.encrypt("Echo: " + decryptedMessage, secretKey);
+
+                    Gson gson = new Gson();
+                    KeepAlive keepAlive = gson.fromJson(decryptedMessage, KeepAlive.class);
+
+                    keepAliveService.save(keepAlive);
+
+                    List<KeepAliveEntity> data = keepAliveService.getAll();
+                    String dataString = gson.toJson(data);
+                    byte[] encryptedResponse = EncryptionUtil.encrypt("Echo: " + dataString, secretKey);
 //                out.println(new String(encryptedResponse));
                     out.println(Base64.getEncoder().encodeToString(encryptedResponse));
 //                out.println("world");
