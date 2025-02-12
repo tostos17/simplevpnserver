@@ -6,6 +6,8 @@ import com.fowobi.networking.repository.KeepAliveRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -18,6 +20,7 @@ public class KeepAliveService {
         KeepAliveEntity keepAliveEntity = new KeepAliveEntity();
         keepAliveEntity.setDepartment(keepAlive.getDepartment());
         keepAliveEntity.setHost(keepAlive.getHost());
+        keepAliveEntity.setTime(new Date());
 
         return repository.save(keepAliveEntity);
     }

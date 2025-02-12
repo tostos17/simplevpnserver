@@ -25,7 +25,7 @@ import java.util.List;
 @Component
 public class VPNServerAsync {
     private static final int PORT = 8888;
-    private static final Logger log = LoggerFactory.getLogger(VPNServer.class);
+    private static final Logger log = LoggerFactory.getLogger(VPNServerAsync.class);
 
     @Autowired
     KeepAliveService keepAliveService;
@@ -39,13 +39,12 @@ public class VPNServerAsync {
                 log.info("Client Connected");
 
                 String encodedKey = PropertyReader.getPropertyValue("secret.key");
-                log.info("secret key::: {}", encodedKey);
                 byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
                 SecretKey secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
 
                 ClientHandler clientHandler = new ClientHandler(socket, secretKey);
                 clientHandler.run();
-//                handleClient(socket, secretKey);
+
             }
         }
     }
